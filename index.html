@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>User Directory - Tanusri</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg:        #07080f;
+      --surface:   #0e0f1a;
+      --card:      #13141f;
+      --card-h:    #181929;
+      --border:    rgba(255,255,255,0.07);
+      --border-h:  rgba(0,245,180,0.25);
+      --accent:    #00f5b4;
+      --accent2:   #ff4d6d;
+      --accent3:   #7b61ff;
+      --text:      #eeeef5;
+      --muted:     #5a5a7a;
+      --muted2:    #8888aa;
+      --modal-bg:  rgba(7,8,15,0.85);
+      --glow:      rgba(0,245,180,0.15);
+      --tr: 0.25s cubic-bezier(0.4,0,0.2,1);
+    }
+    [data-theme="light"] {
+      --bg:        #f4f4fb;
+      --surface:   #eaeaf5;
+      --card:      #ffffff;
+      --card-h:    #f0f0ff;
+      --border:    rgba(0,0,0,0.08);
+      --border-h:  rgba(0,180,130,0.35);
+      --accent:    #00a37a;
+      --accent2:   #e0293f;
+      --accent3:   #5840cc;
+      --text:      #111120;
+      --muted:     #9090b0;
+      --muted2:    #606088;
+      --modal-bg:  rgba(244,244,251,0.88);
+      --glow:      rgba(0,163,122,0.12);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'JetBrains Mono', monospace;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+      transition: background var(--tr), color var(--tr);
+    }
+
+    .bg-mesh {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background:
+        radial-gradient(ellipse 55% 45% at 15% 5%,  rgba(0,245,180,0.07) 0%, transparent 65%),
+        radial-gradient(ellipse 40% 55% at 85% 85%, rgba(123,97,255,0.06) 0%, transparent 60%),
+        radial-gradient(ellipse 30% 35% at 60% 30%, rgba(255,77,109,0.04) 0%, transparent 55%);
+      transition: opacity 0.4s;
+    }
+    [data-theme="light"] .bg-mesh { opacity: 0.5; }
+
+    /* ── HEADER ── */
+    header {
+      position: relative; z-index: 10;
+      max-width: 1180px; margin: 0 auto;
+      padding: 3.5rem 2rem 0;
+    }
+
+    .header-top {
+      display: flex; justify-content: space-between;
+      align-items: flex-start; flex-wrap: wrap; gap: 1rem;
+    }
+
+    .eyebrow {
+      font-size: 0.65rem; letter-spacing: 0.3em; text-transform: uppercase;
+      color: var(--accent); margin-bottom: 0.6rem;
+      opacity: 0; animation: fadeDown 0.6s 0.1s ease forwards;
+    }
+
+    h1 {
+      font-family: 'Syne', sans-serif; font-weight: 800;
+      font-size: clamp(2.2rem, 5vw, 4rem); line-height: 1.05; letter-spacing: -0.02em;
+      opacity: 0; animation: fadeDown 0.6s 0.2s ease forwards;
+    }
+    h1 em { font-style: normal; color: var(--accent); }
+
+    .subtitle {
+      margin-top: 0.5rem; font-size: 0.72rem;
+      color: var(--muted); letter-spacing: 0.05em;
+      opacity: 0; animation: fadeDown 0.6s 0.3s ease forwards;
+    }
+
+    .theme-toggle {
+      display: flex; align-items: center; gap: 0.5rem;
+      background: var(--card); border: 1px solid var(--border);
+      padding: 0.45rem 1rem 0.45rem 0.6rem;
+      cursor: pointer; font-family: 'Syne', sans-serif;
+      font-size: 0.72rem; font-weight: 600; color: var(--muted2);
+      letter-spacing: 0.06em;
+      transition: all var(--tr);
+      clip-path: polygon(6px 0%, 100% 0%, calc(100% - 6px) 100%, 0% 100%);
+      opacity: 0; animation: fadeDown 0.6s 0.4s ease forwards;
+    }
+    .theme-toggle:hover { color: var(--accent); border-color: var(--border-h); }
+
+    /* ── CONTROLS BAR ── */
+    .controls-bar {
+      display: flex; flex-wrap: wrap; gap: 0.75rem;
+      align-items: center; margin-top: 2rem;
+      padding: 1.25rem 1.5rem;
+      background: var(--card); border: 1px solid var(--border);
+      opacity: 0; animation: fadeUp 0.6s 0.5s ease forwards;
+    }
+
+    .search-wrap { position: relative; flex: 1 1 240px; }
+    .search-icon {
+      position: absolute; left: 0.8rem; top: 50%; transform: translateY(-50%);
+      width: 14px; height: 14px; color: var(--muted); pointer-events: none;
+    }
+    #search {
+      width: 100%; padding: 0.55rem 0.8rem 0.55rem 2.2rem;
+      background: var(--bg); border: 1px solid var(--border);
+      color: var(--text); font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem; outline: none;
+      transition: border-color var(--tr), box-shadow var(--tr);
+    }
+    #search:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--glow); }
+    #search::placeholder { color: var(--muted); }
+
+    .filter-wrap { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .filter-btn {
+      padding: 0.45rem 0.9rem; background: transparent;
+      border: 1px solid var(--border); color: var(--muted2);
+      font-family: 'Syne', sans-serif; font-size: 0.7rem;
+      font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase;
+      cursor: pointer; transition: all var(--tr);
+      clip-path: polygon(5px 0%, 100% 0%, calc(100% - 5px) 100%, 0% 100%);
+    }
+    .filter-btn:hover, .filter-btn.active {
+      background: var(--accent); color: var(--bg); border-color: var(--accent);
+    }
+
+    .reload-btn {
+      display: inline-flex; align-items: center; gap: 0.45rem;
+      padding: 0.5rem 1.1rem; background: transparent;
+      border: 1.5px solid var(--accent); color: var(--accent);
+      font-family: 'Syne', sans-serif; font-size: 0.72rem;
+      font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+      cursor: pointer; transition: all var(--tr);
+      clip-path: polygon(7px 0%, 100% 0%, calc(100% - 7px) 100%, 0% 100%);
+    }
+    .reload-btn:hover { background: var(--accent); color: var(--bg); }
+    .reload-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .reload-btn .ri { width: 13px; height: 13px; transition: transform 0.5s ease; }
+    .reload-btn:not(:disabled):hover .ri { transform: rotate(200deg); }
+
+    .count-badge { margin-left: auto; font-size: 0.68rem; color: var(--muted); white-space: nowrap; }
+    .count-badge span { color: var(--accent); font-weight: 500; }
+
+    /* ── GRID ── */
+    main {
+      position: relative; z-index: 1;
+      max-width: 1180px; margin: 0 auto;
+      padding: 1.5rem 2rem 5rem;
+    }
+
+    #user-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 1.1rem;
+    }
+
+    /* ── USER CARD ── */
+    .user-card {
+      background: var(--card); border: 1px solid var(--border);
+      padding: 1.6rem 1.6rem 2.2rem;
+      position: relative; overflow: hidden; cursor: pointer;
+      animation: fadeUp 0.5s ease both;
+      transition: transform var(--tr), border-color var(--tr), box-shadow var(--tr);
+    }
+    .user-card::before {
+      content: ''; position: absolute; top: 0; left: 0;
+      width: 0; height: 3px;
+      background: linear-gradient(90deg, var(--accent), var(--accent3));
+      transition: width 0.35s ease;
+    }
+    .user-card::after {
+      content: ''; position: absolute; inset: 0;
+      background: radial-gradient(ellipse 80% 60% at 50% 0%, var(--glow), transparent);
+      opacity: 0; transition: opacity 0.35s ease; pointer-events: none;
+    }
+    .user-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--border-h);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.25), 0 0 0 1px var(--border-h);
+    }
+    .user-card:hover::before { width: 100%; }
+    .user-card:hover::after  { opacity: 1; }
+
+    .card-top { display: flex; justify-content: space-between; margin-bottom: 0.25rem; }
+    .card-number {
+      font-size: 0.6rem; letter-spacing: 0.12em; color: var(--muted);
+      padding: 0.2rem 0.5rem; border: 1px solid var(--border); background: var(--bg);
+    }
+
+    .user-name {
+      font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1.05rem;
+      color: var(--text); margin-bottom: 0.15rem; transition: color var(--tr);
+    }
+    .user-card:hover .user-name { color: var(--accent); }
+
+    .user-username { font-size: 0.7rem; color: var(--accent); margin-bottom: 1.2rem; }
+
+    .info-grid { display: flex; flex-direction: column; gap: 0.5rem; }
+    .info-row  { display: flex; align-items: flex-start; gap: 0.55rem; }
+    .ii { width: 13px; height: 13px; color: var(--muted); flex-shrink: 0; margin-top: 2px; transition: color var(--tr); }
+    .user-card:hover .ii { color: var(--accent); }
+    .info-text { font-size: 0.73rem; color: var(--muted2); line-height: 1.55; }
+
+    .divider { height: 1px; background: var(--border); margin: 1rem 0; }
+
+    .company-tag {
+      display: inline-flex; align-items: center; gap: 0.35rem;
+      font-size: 0.65rem; font-weight: 500; padding: 0.2rem 0.6rem;
+      background: rgba(123,97,255,0.1); color: var(--accent3);
+      border: 1px solid rgba(123,97,255,0.2);
+    }
+
+    .view-btn {
+      position: absolute; bottom: 1.2rem; right: 1.4rem;
+      font-family: 'Syne', sans-serif; font-size: 0.6rem; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--muted); opacity: 0;
+      transition: opacity var(--tr), color var(--tr);
+    }
+    .user-card:hover .view-btn { opacity: 1; color: var(--accent); }
+
+    /* ── SKELETON ── */
+    .skeleton-card {
+      background: var(--card); border: 1px solid var(--border);
+      padding: 1.6rem; animation: pulse 1.6s ease-in-out infinite;
+    }
+    .skel { background: var(--border); border-radius: 2px; margin-bottom: 0.65rem; }
+    .skel-num  { height: 20px; width: 45px; margin-bottom: 0.6rem; }
+    .skel-name { height: 17px; width: 65%; }
+    .skel-user { height: 11px; width: 42%; margin-bottom: 1.2rem; }
+    .skel-line { height: 10px; margin-bottom: 0.55rem; }
+    .w80 { width: 80%; } .w70 { width: 70%; } .w58 { width: 58%; }
+
+    /* ── STATES ── */
+    .no-results {
+      grid-column: 1/-1; text-align: center; padding: 5rem 2rem;
+    }
+    .no-results-icon  { font-size: 3rem; margin-bottom: 1rem; }
+    .no-results-title { font-family: 'Syne', sans-serif; font-size: 1.3rem; color: var(--text); margin-bottom: 0.4rem; }
+    .no-results-sub   { font-size: 0.78rem; color: var(--muted); }
+
+    .error-state  { grid-column: 1/-1; text-align: center; padding: 5rem 2rem; }
+    .error-icon   { font-size: 3rem; margin-bottom: 1rem; }
+    .error-title  { font-family: 'Syne', sans-serif; font-size: 1.4rem; color: var(--accent2); margin-bottom: 0.5rem; }
+    .error-msg    { font-size: 0.78rem; color: var(--muted); margin-bottom: 1.5rem; }
+
+    /* ── MODAL ── */
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 100;
+      background: var(--modal-bg);
+      backdrop-filter: blur(14px) saturate(1.4);
+      display: flex; align-items: center; justify-content: center;
+      padding: 1.5rem;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
+
+    .modal {
+      background: var(--card); border: 1px solid var(--border-h);
+      width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto;
+      position: relative;
+      transform: scale(0.93) translateY(12px);
+      transition: transform 0.38s cubic-bezier(0.34,1.56,0.64,1);
+      box-shadow: 0 30px 80px rgba(0,0,0,0.5), 0 0 0 1px var(--border-h);
+    }
+    .modal-overlay.open .modal { transform: scale(1) translateY(0); }
+
+    .modal-header {
+      padding: 1.8rem 1.8rem 1.4rem;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 1.4rem; position: relative;
+    }
+    .modal-close {
+      position: absolute; top: 1.2rem; right: 1.4rem;
+      background: none; border: 1px solid var(--border);
+      width: 30px; height: 30px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; color: var(--muted);
+      transition: all var(--tr);
+    }
+    .modal-close:hover { border-color: var(--accent2); color: var(--accent2); }
+    .modal-close svg { width: 13px; height: 13px; }
+
+    .modal-id {
+      font-size: 0.62rem; letter-spacing: 0.2em;
+      color: var(--accent); text-transform: uppercase; margin-bottom: 0.4rem;
+    }
+    .modal-name {
+      font-family: 'Syne', sans-serif; font-weight: 800;
+      font-size: 1.7rem; letter-spacing: -0.02em;
+      color: var(--text); margin-bottom: 0.2rem;
+    }
+    .modal-username { font-size: 0.78rem; color: var(--accent); }
+
+    .modal-body { padding: 0 1.8rem 1.8rem; }
+
+    .modal-section { margin-bottom: 1.5rem; }
+    .modal-section-title {
+      font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 0.8rem;
+      padding-bottom: 0.4rem; border-bottom: 1px solid var(--border);
+    }
+
+    .modal-row { display: flex; align-items: flex-start; gap: 0.8rem; margin-bottom: 0.75rem; }
+    .modal-row-icon {
+      width: 32px; height: 32px; flex-shrink: 0;
+      background: var(--bg); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .modal-row-icon svg { width: 14px; height: 14px; color: var(--accent); }
+    .modal-row-label { font-size: 0.65rem; color: var(--muted); margin-bottom: 0.15rem; letter-spacing: 0.05em; }
+    .modal-row-value { font-size: 0.82rem; color: var(--text); line-height: 1.5; }
+    .modal-row-value a { color: var(--accent); text-decoration: none; }
+    .modal-row-value a:hover { text-decoration: underline; }
+
+    .map-link {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      margin-top: 0.4rem; font-size: 0.68rem; color: var(--accent);
+      text-decoration: none; border-bottom: 1px dashed var(--accent);
+      transition: opacity var(--tr);
+    }
+    .map-link:hover { opacity: 0.75; }
+    .map-link svg { width: 11px; height: 11px; }
+
+    .catchphrase {
+      font-size: 0.8rem; font-style: italic; color: var(--muted2);
+      line-height: 1.6; padding: 0.75rem 1rem;
+      border-left: 3px solid var(--accent3);
+      background: rgba(123,97,255,0.05);
+    }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeDown {
+      from { opacity: 0; transform: translateY(-12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes pulse {
+      0%,100% { opacity: 1; } 50% { opacity: 0.45; }
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinning { animation: spin 0.6s linear infinite; }
+
+    .user-card:nth-child(1){animation-delay:.04s} .user-card:nth-child(2){animation-delay:.08s}
+    .user-card:nth-child(3){animation-delay:.12s} .user-card:nth-child(4){animation-delay:.16s}
+    .user-card:nth-child(5){animation-delay:.20s} .user-card:nth-child(6){animation-delay:.24s}
+    .user-card:nth-child(7){animation-delay:.28s} .user-card:nth-child(8){animation-delay:.32s}
+    .user-card:nth-child(9){animation-delay:.36s} .user-card:nth-child(10){animation-delay:.40s}
+
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--muted); border-radius: 2px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+    @media (max-width: 600px) {
+      header { padding: 2rem 1.2rem 0; }
+      main   { padding: 1.2rem 1.2rem 4rem; }
+      .controls-bar { padding: 1rem; }
+      .count-badge { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="bg-mesh"></div>
+
+<header>
+  <div class="header-top">
+    <div>
+      <p class="eyebrow">// Fetch API</p>
+      <h1>User <em>Directory</em></h1>
+      <p class="subtitle">Built by Tanusri-jsonplaceholder.typicode.com/users</p>
+    </div>
+    <button class="theme-toggle" onclick="toggleTheme()">
+      <span id="theme-icon">☀️</span>
+      <span id="theme-label">Light Mode</span>
+    </button>
+  </div>
+
+  <div class="controls-bar">
+    <div class="search-wrap">
+      <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input type="text" id="search" placeholder="Search by name, email, city…" autocomplete="off" oninput="applyFilters()"/>
+    </div>
+
+    <div class="filter-wrap">
+      <button class="filter-btn active" data-sort="id"      onclick="setSort('id')">ID</button>
+      <button class="filter-btn"        data-sort="name"    onclick="setSort('name')">A–Z</button>
+      <button class="filter-btn"        data-sort="company" onclick="setSort('company')">Company</button>
+    </div>
+
+    <button class="reload-btn" id="reload-btn" onclick="loadUsers()">
+      <svg class="ri" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+      </svg>
+      Reload
+    </button>
+
+    <div class="count-badge" id="count-badge">Loading…</div>
+  </div>
+</header>
+
+<main>
+  <div id="user-grid"></div>
+</main>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModalOnOverlay(event)">
+  <div class="modal" id="modal">
+    <div class="modal-header">
+      <button class="modal-close" onclick="closeModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+      <p class="modal-id"  id="modal-id"></p>
+      <h2 class="modal-name" id="modal-name"></h2>
+      <p class="modal-username" id="modal-username"></p>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<script>
+  const API = 'https://jsonplaceholder.typicode.com/users';
+  let allUsers = [], currentSort = 'id', isDark = true;
+
+  const grid = document.getElementById('user-grid');
+  const badge = document.getElementById('count-badge');
+  const reloadBtn = document.getElementById('reload-btn');
+
+  /* ── THEME ── */
+  function toggleTheme() {
+    isDark = !isDark;
+    document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+    document.getElementById('theme-icon').textContent  = isDark ? '☀️' : '🌙';
+    document.getElementById('theme-label').textContent = isDark ? 'Light Mode' : 'Dark Mode';
+  }
+
+  /* ── SORT ── */
+  function setSort(type) {
+    currentSort = type;
+    document.querySelectorAll('.filter-btn').forEach(b =>
+      b.classList.toggle('active', b.dataset.sort === type));
+    applyFilters();
+  }
+
+  /* ── FILTER ── */
+  function applyFilters() {
+    const q = document.getElementById('search').value.toLowerCase().trim();
+    let list = allUsers.filter(u =>
+      u.name.toLowerCase().includes(q)         ||
+      u.email.toLowerCase().includes(q)        ||
+      u.username.toLowerCase().includes(q)     ||
+      u.address.city.toLowerCase().includes(q) ||
+      u.company.name.toLowerCase().includes(q)
+    );
+    list.sort((a, b) =>
+      currentSort === 'name'    ? a.name.localeCompare(b.name) :
+      currentSort === 'company' ? a.company.name.localeCompare(b.company.name) :
+      a.id - b.id
+    );
+    renderUsers(list);
+    badge.innerHTML = `<span>${list.length}</span> / ${allUsers.length} users`;
+  }
+
+  /* ── SKELETONS ── */
+  function showSkeletons() {
+    grid.innerHTML = Array(10).fill(0).map(() => `
+      <div class="skeleton-card">
+        <div class="skel skel-num"></div>
+        <div class="skel skel-name"></div>
+        <div class="skel skel-user"></div>
+        <div class="skel skel-line w80"></div>
+        <div class="skel skel-line w70"></div>
+        <div class="skel skel-line w58"></div>
+      </div>`).join('');
+    badge.innerHTML = 'Fetching…';
+  }
+
+  /* ── RENDER ── */
+  function renderUsers(users) {
+    if (!users.length) {
+      grid.innerHTML = `
+        <div class="no-results">
+          <div class="no-results-icon">🔍</div>
+          <div class="no-results-title">No users found</div>
+          <div class="no-results-sub">Try a different search term.</div>
+        </div>`;
+      return;
+    }
+    grid.innerHTML = users.map(u => `
+      <div class="user-card" onclick="openModal(${u.id})">
+        <div class="card-top">
+          <div class="card-number">#${String(u.id).padStart(2,'0')}</div>
+        </div>
+        <div class="user-name">${u.name}</div>
+        <div class="user-username">@${u.username}</div>
+        <div class="info-grid">
+          <div class="info-row">${iMail()}<span class="info-text">${u.email}</span></div>
+          <div class="info-row">${iPin()}<span class="info-text">${u.address.city}, ${u.address.zipcode}</span></div>
+          <div class="info-row">${iPhone()}<span class="info-text">${u.phone}</span></div>
+        </div>
+        <div class="divider"></div>
+        <span class="company-tag">${iBag()} ${u.company.name}</span>
+        <span class="view-btn">View details →</span>
+      </div>`).join('');
+  }
+
+  /* ── MODAL ── */
+  function openModal(id) {
+    const u = allUsers.find(x => x.id === id);
+    if (!u) return;
+    document.getElementById('modal-id').textContent       = `USER #${String(u.id).padStart(2,'0')}`;
+    document.getElementById('modal-name').textContent     = u.name;
+    document.getElementById('modal-username').textContent = `@${u.username}`;
+    document.getElementById('modal-body').innerHTML = `
+      <div class="modal-section">
+        <div class="modal-section-title">Contact</div>
+        ${mRow(iMail(),'Email',`<a href="mailto:${u.email}">${u.email}</a>`)}
+        ${mRow(iPhone(),'Phone', u.phone)}
+        ${mRow(iGlobe(),'Website',`<a href="https://${u.website}" target="_blank">${u.website}</a>`)}
+      </div>
+      <div class="modal-section">
+        <div class="modal-section-title">Address</div>
+        ${mRow(iPin(),'Location',`${u.address.street}, ${u.address.suite}<br>${u.address.city} — ${u.address.zipcode}
+          <br><a class="map-link" href="https://maps.google.com/?q=${u.address.geo.lat},${u.address.geo.lng}" target="_blank">
+          ${iPin()} View on map</a>`)}
+      </div>
+      <div class="modal-section">
+        <div class="modal-section-title">Company</div>
+        ${mRow(iBag(),'Name', u.company.name)}
+        ${mRow(iQuote(),'Catch Phrase',`<p class="catchphrase">${u.company.catchPhrase}</p>`)}
+        ${mRow(iTag(),'Business', u.company.bs)}
+      </div>`;
+    document.getElementById('modal-overlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function mRow(icon, label, value) {
+    return `<div class="modal-row">
+      <div class="modal-row-icon">${icon}</div>
+      <div><div class="modal-row-label">${label}</div>
+           <div class="modal-row-value">${value}</div></div>
+    </div>`;
+  }
+
+  function closeModal() {
+    document.getElementById('modal-overlay').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+  function closeModalOnOverlay(e) {
+    if (e.target === document.getElementById('modal-overlay')) closeModal();
+  }
+  document.addEventListener('keydown', e => e.key === 'Escape' && closeModal());
+
+  /* ── FETCH ── */
+  async function loadUsers() {
+    reloadBtn.disabled = true;
+    reloadBtn.querySelector('.ri').classList.add('spinning');
+    allUsers = [];
+    showSkeletons();
+    try {
+      const res = await fetch(API);
+      if (!res.ok) throw new Error(`HTTP ${res.status} — ${res.statusText}`);
+      allUsers = await res.json();
+      applyFilters();
+    } catch (err) {
+      grid.innerHTML = `
+        <div class="error-state">
+          <div class="error-icon">⚠️</div>
+          <div class="error-title">Failed to Fetch Data</div>
+          <div class="error-msg">${err.message || 'Network error. Check your connection.'}</div>
+          <button class="reload-btn" onclick="loadUsers()" style="margin:0 auto">
+            ${iReload()} Try Again
+          </button>
+        </div>`;
+      badge.innerHTML = '✗ Error';
+    } finally {
+      reloadBtn.disabled = false;
+      reloadBtn.querySelector('.ri').classList.remove('spinning');
+    }
+  }
+
+  /* ── ICON HELPERS ── */
+  const svg = d => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+  const iMail  = () => svg('<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>');
+  const iPin   = () => svg('<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>');
+  const iPhone = () => svg('<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.38 2 2 0 0 1 3.58 1h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.5a16 16 0 0 0 6.29 6.29l1.86-1.86a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/>');
+  const iGlobe = () => svg('<circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>');
+  const iBag   = () => svg('<rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>');
+  const iQuote = () => svg('<path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/>');
+  const iTag   = () => svg('<path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/>');
+  const iReload= () => svg('<polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>');
+
+  loadUsers();
+</script>
+</body>
+</html>
